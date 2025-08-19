@@ -4,7 +4,7 @@ class BudgetApp {
     constructor() {
         this.currentTheme = 'dark';
         this.currentSection = 'dashboard';
-        this.data = this.loadInitialData();
+        this.data = {};
         this.currentTransactions = [];
         this.expensesChart = null;
         this.incomeChart = null;
@@ -22,7 +22,7 @@ class BudgetApp {
             {value: 'utilities', name: 'Коммунальные'},
             {value: 'other', name: 'Другое'}
         ];
-        this.customCategories = JSON.parse(localStorage.getItem('customCategories')) || [];
+        this.customCategories = [];
 
         this.init();
     }
@@ -98,6 +98,41 @@ class BudgetApp {
         };
     }
 
+    async loadData() {
+        const saved = localStorage.getItem('budgetAppData');
+        if (saved) {
+            try {
+                this.data = JSON.parse(saved);
+                this.customCategories = this.data.customCategories || [];
+            } catch (e) {
+                console.error('Ошибка загрузки данных из localStorage', e);
+            }
+        }
+
+        if (!this.data || Object.keys(this.data).length === 0) {
+            try {
+                const response = await fetch('budget_data.json');
+                this.data = await response.json();
+                this.customCategories = this.data.customCategories || [];
+            } catch (e) {
+                console.error('Ошибка загрузки стандартных данных', e);
+                this.data = this.loadInitialData();
+                this.customCategories = this.data.customCategories || [];
+            }
+        }
+
+        this.data.customCategories = this.customCategories;
+    }
+
+    saveData() {
+        this.data.customCategories = this.customCategories;
+        try {
+            localStorage.setItem('budgetAppData', JSON.stringify(this.data));
+        } catch (e) {
+            console.error('Ошибка сохранения данных', e);
+        }
+    }
+
     init() {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
@@ -108,7 +143,8 @@ class BudgetApp {
         }
     }
 
-    setupApp() {
+    async setupApp() {
+        await this.loadData();
         this.setupEventListeners();
         this.setupTheme();
         this.currentTransactions = [...this.data.recentTransactions];
@@ -1044,6 +1080,7 @@ class BudgetApp {
         };
 
         this.data.recentTransactions.unshift(transaction);
+        this.saveData();
         this.hideModal('addTransactionModal');
         this.showNotification('Транзакция успешно добавлена!');
         
@@ -1079,6 +1116,7 @@ class BudgetApp {
         };
 
         this.data.userProfile.financialGoals.push(goal);
+        this.saveData();
         this.hideModal('addGoalModal');
         this.showNotification('Цель успешно добавлена!');
         
@@ -1095,6 +1133,7 @@ class BudgetApp {
         const amount = prompt('Введите сумму для пополнения цели:');
         if (amount && !isNaN(amount) && amount > 0) {
             this.data.userProfile.financialGoals[goalIndex].current += parseFloat(amount);
+            this.saveData();
             this.showNotification(`Цель пополнена на ${this.formatCurrency(amount)}!`);
             this.addExperience(15);
 
@@ -1126,6 +1165,7 @@ class BudgetApp {
         }
 
         this.data.monthlyBudget.income[category] = amount;
+        this.saveData();
         this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
@@ -1145,6 +1185,7 @@ class BudgetApp {
         }
 
         this.data.monthlyBudget.expenses[category] = {planned: amount, actual: amount, category: category};
+        this.saveData();
         this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
@@ -1155,8 +1196,9 @@ class BudgetApp {
     editSavings() {
         const value = parseFloat(prompt('Новая сумма накоплений', this.data.monthlyBudget.expenses.savings.actual));
         if (!isNaN(value)) {
-            this.data.monthlyBudget.expenses.savings.actual = value;
-            this.updateStats();
+              this.data.monthlyBudget.expenses.savings.actual = value;
+              this.saveData();
+              this.updateStats();
             if (this.currentSection === 'analytics') {
                 this.renderAnalytics();
             }
@@ -1174,6 +1216,7 @@ class BudgetApp {
         transaction.amount = amount;
         transaction.type = amount >= 0 ? 'credit' : 'debit';
         this.data.recentTransactions = [...this.currentTransactions];
+        this.saveData();
         this.renderTransactionsList();
         this.renderRecentTransactions();
     }
@@ -1182,6 +1225,7 @@ class BudgetApp {
         if (!confirm('Удалить транзакцию?')) return;
         this.currentTransactions.splice(index, 1);
         this.data.recentTransactions = [...this.currentTransactions];
+        this.saveData();
         this.renderTransactionsList();
         this.renderRecentTransactions();
     }
@@ -1198,6 +1242,7 @@ class BudgetApp {
         goal.name = name;
         goal.target = target;
         goal.current = current;
+        this.saveData();
         if (this.currentSection === 'goals') {
             this.renderGoals();
         } else if (this.currentSection === 'dashboard') {
@@ -1208,6 +1253,7 @@ class BudgetApp {
     deleteGoal(index) {
         if (!confirm('Удалить цель?')) return;
         this.data.userProfile.financialGoals.splice(index, 1);
+        this.saveData();
         if (this.currentSection === 'goals') {
             this.renderGoals();
         } else if (this.currentSection === 'dashboard') {
@@ -1230,7 +1276,8 @@ class BudgetApp {
         }
 
         this.customCategories.push(name);
-        localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
+        this.data.customCategories = this.customCategories;
+        this.saveData();
 
         this.renderCategoryOptions();
         this.renderCategoryList();
@@ -1240,7 +1287,8 @@ class BudgetApp {
 
     handleRemoveCategory(name) {
         this.customCategories = this.customCategories.filter(c => c !== name);
-        localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
+        this.data.customCategories = this.customCategories;
+        this.saveData();
         this.renderCategoryOptions();
         this.renderCategoryList();
     }
@@ -1372,19 +1420,21 @@ class BudgetApp {
 
     addExperience(amount) {
         this.data.gamification.experience += amount;
-        
+
         if (this.data.gamification.experience >= this.data.gamification.nextLevelExp) {
             this.levelUp();
         }
-        
+
         this.updateExpBar();
+        this.saveData();
     }
 
     levelUp() {
         this.data.gamification.level++;
         this.data.gamification.experience = 0;
         this.data.gamification.nextLevelExp += 500;
-        
+        this.saveData();
+
         this.showNotification(`🎉 Поздравляем! Вы достигли ${this.data.gamification.level} уровня!`);
     }
 
