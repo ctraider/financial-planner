@@ -424,6 +424,58 @@
         </div>
     </div>
 
+    <!-- Edit Income Modal -->
+    <div id="incomeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить доход</h3>
+                <button class="modal-close" id="closeIncomeModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="incomeForm">
+                    <div class="form-group">
+                        <label class="form-label">Категория</label>
+                        <input type="text" class="form-control" id="incomeCategory" placeholder="Например: Зарплата">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Сумма</label>
+                        <input type="number" class="form-control" id="incomeAmount" placeholder="0">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn--secondary" id="cancelIncome">Отмена</button>
+                        <button type="submit" class="btn btn--primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Expense Modal -->
+    <div id="expenseModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить расход</h3>
+                <button class="modal-close" id="closeExpenseModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="expenseForm">
+                    <div class="form-group">
+                        <label class="form-label">Категория</label>
+                        <input type="text" class="form-control" id="expenseCategory" placeholder="Например: Продукты">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Сумма</label>
+                        <input type="number" class="form-control" id="expenseAmount" placeholder="0">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn--secondary" id="cancelExpense">Отмена</button>
+                        <button type="submit" class="btn btn--primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Category Modal -->
     <div id="addCategoryModal" class="modal hidden">
         <div class="modal-content">
