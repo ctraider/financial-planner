@@ -23,6 +23,7 @@
                 <li><a href="#transactions" class="nav-link" data-section="transactions">💳 Транзакции</a></li>
                 <li><a href="#goals" class="nav-link" data-section="goals">🎯 Цели</a></li>
                 <li><a href="#analytics" class="nav-link" data-section="analytics">📈 Аналитика</a></li>
+                <li><a href="#counter" class="nav-link" data-section="counter">💵 Счетчик</a></li>
                 <li><a href="#ai-assistant" class="nav-link" data-section="ai-assistant">🤖 AI Помощник</a></li>
                 <li><a href="#settings" class="nav-link" data-section="settings">⚙️ Настройки</a></li>
             </ul>
@@ -191,6 +192,38 @@
                             <div class="insights-list" id="insightsList">
                                 <!-- Insights will be populated by JS -->
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Counter Section -->
+            <section id="counter" class="content-section">
+                <div class="card counter-card">
+                    <div class="card__body">
+                        <h3>Счетчик денег</h3>
+                        <div class="counter-balance" id="counterBalanceContainer">
+                            <span id="counterBalanceValue">0</span> ₽
+                        </div>
+                        <div class="counter-controls">
+                            <div class="form-group">
+                                <label class="form-label">Начальный баланс</label>
+                                <input type="number" class="form-control" id="initialBalanceInput" placeholder="0">
+                                <button class="btn btn--secondary" id="setInitialBalanceBtn">Установить</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Доход</label>
+                                <input type="number" class="form-control" id="incomeInput" placeholder="0">
+                                <button class="btn btn--primary" id="addIncomeBtn">Добавить</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Расход</label>
+                                <input type="number" class="form-control" id="expenseInput" placeholder="0">
+                                <button class="btn btn--primary" id="addExpenseBtn">Добавить</button>
+                            </div>
+                        </div>
+                        <div class="counter-summary">
+                            Доходы: <span id="counterIncomeTotal">0</span> ₽ | Расходы: <span id="counterExpenseTotal">0</span> ₽
                         </div>
                     </div>
                 </div>
