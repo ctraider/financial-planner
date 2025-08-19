@@ -997,6 +997,10 @@ select.form-control {
   transition: all var(--duration-normal) var(--ease-standard);
 }
 
+.stat-edit {
+  margin-left: auto;
+}
+
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
@@ -1072,6 +1076,12 @@ select.form-control {
   font-size: var(--font-size-sm);
   color: var(--color-primary);
   font-weight: var(--font-weight-medium);
+}
+
+.goal-actions {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
 }
 
 /* Progress Bar */
@@ -1207,6 +1217,17 @@ select.form-control {
   justify-content: space-between;
   align-items: center;
   transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.transaction-meta-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.transaction-actions {
+  display: flex;
+  gap: var(--space-8);
 }
 
 .transaction-card:hover {
