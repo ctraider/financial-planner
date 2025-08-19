@@ -302,6 +302,14 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Категории расходов</h3>
+                                <div id="categoryList" class="category-list"></div>
+                                <button class="btn btn--primary" id="addCategoryBtn">+ Добавить категорию</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -334,16 +342,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Категория</label>
-                        <select class="form-control" id="transactionCategory">
-                            <option value="food">Еда</option>
-                            <option value="transport">Транспорт</option>
-                            <option value="housing">Жилье</option>
-                            <option value="entertainment">Развлечения</option>
-                            <option value="health">Здоровье</option>
-                            <option value="shopping">Покупки</option>
-                            <option value="utilities">Коммунальные</option>
-                            <option value="other">Другое</option>
-                        </select>
+                        <select class="form-control" id="transactionCategory"></select>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn--secondary" id="cancelTransaction">Отмена</button>
@@ -387,6 +386,28 @@
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn--secondary" id="cancelGoal">Отмена</button>
+                        <button type="submit" class="btn btn--primary">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить категорию</h3>
+                <button class="modal-close" id="closeCategoryModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <div class="form-group">
+                        <label class="form-label">Название категории</label>
+                        <input type="text" class="form-control" id="categoryName" placeholder="Например: Подарки">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn--secondary" id="cancelCategory">Отмена</button>
                         <button type="submit" class="btn btn--primary">Добавить</button>
                     </div>
                 </form>

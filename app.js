@@ -9,6 +9,17 @@ class BudgetApp {
         this.expensesChart = null;
         this.balanceChart = null;
         this.counterData = JSON.parse(localStorage.getItem('counterData')) || {balance: 0, income: 0, expense: 0};
+        this.defaultCategories = [
+            {value: 'food', name: 'Еда'},
+            {value: 'transport', name: 'Транспорт'},
+            {value: 'housing', name: 'Жилье'},
+            {value: 'entertainment', name: 'Развлечения'},
+            {value: 'health', name: 'Здоровье'},
+            {value: 'shopping', name: 'Покупки'},
+            {value: 'utilities', name: 'Коммунальные'},
+            {value: 'other', name: 'Другое'}
+        ];
+        this.customCategories = JSON.parse(localStorage.getItem('customCategories')) || [];
 
         this.init();
     }
@@ -98,6 +109,8 @@ class BudgetApp {
         this.setupEventListeners();
         this.setupTheme();
         this.currentTransactions = [...this.data.recentTransactions];
+        this.renderCategoryOptions();
+        this.renderCategoryList();
         this.renderDashboard();
         this.updateExpBar();
         this.showSection('dashboard');
@@ -252,6 +265,46 @@ class BudgetApp {
                 }
             });
         });
+
+        // Category modal
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        if (addCategoryBtn) {
+            addCategoryBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showModal('addCategoryModal');
+            });
+        }
+
+        const closeCategoryModal = document.getElementById('closeCategoryModal');
+        if (closeCategoryModal) {
+            closeCategoryModal.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('addCategoryModal');
+            });
+        }
+
+        const cancelCategory = document.getElementById('cancelCategory');
+        if (cancelCategory) {
+            cancelCategory.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('addCategoryModal');
+            });
+        }
+
+        const categoryForm = document.getElementById('categoryForm');
+        if (categoryForm) {
+            categoryForm.addEventListener('submit', (e) => this.handleAddCategory(e));
+        }
+
+        const categoryList = document.getElementById('categoryList');
+        if (categoryList) {
+            categoryList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-category')) {
+                    const name = e.target.dataset.name;
+                    this.handleRemoveCategory(name);
+                }
+            });
+        }
     }
 
     setupTheme() {
@@ -829,13 +882,79 @@ class BudgetApp {
             this.data.userProfile.financialGoals[goalIndex].current += parseFloat(amount);
             this.showNotification(`Цель пополнена на ${this.formatCurrency(amount)}!`);
             this.addExperience(15);
-            
+
             if (this.currentSection === 'goals') {
                 this.renderGoals();
             } else if (this.currentSection === 'dashboard') {
                 this.renderGoalsPreview();
             }
         }
+    }
+
+    handleAddCategory(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('categoryName').value.trim();
+        if (!name) {
+            this.showNotification('Введите название категории');
+            return;
+        }
+
+        if (this.customCategories.includes(name)) {
+            this.showNotification('Такая категория уже существует');
+            return;
+        }
+
+        this.customCategories.push(name);
+        localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
+
+        this.renderCategoryOptions();
+        this.renderCategoryList();
+        this.hideModal('addCategoryModal');
+        this.showNotification('Категория добавлена');
+    }
+
+    handleRemoveCategory(name) {
+        this.customCategories = this.customCategories.filter(c => c !== name);
+        localStorage.setItem('customCategories', JSON.stringify(this.customCategories));
+        this.renderCategoryOptions();
+        this.renderCategoryList();
+    }
+
+    renderCategoryOptions() {
+        const select = document.getElementById('transactionCategory');
+        if (!select) return;
+
+        select.innerHTML = '';
+        [...this.defaultCategories, ...this.customCategories.map(c => ({value: c, name: c}))].forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.value;
+            option.textContent = cat.name;
+            select.appendChild(option);
+        });
+    }
+
+    renderCategoryList() {
+        const container = document.getElementById('categoryList');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const allCats = [...this.defaultCategories.map(c => ({name: c.name, removable: false})),
+                         ...this.customCategories.map(c => ({name: c, removable: true}))];
+
+        allCats.forEach(cat => {
+            const item = document.createElement('div');
+            item.className = 'category-item';
+            item.textContent = cat.name;
+            if (cat.removable) {
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-category';
+                removeBtn.dataset.name = cat.name;
+                removeBtn.textContent = '×';
+                item.appendChild(removeBtn);
+            }
+            container.appendChild(item);
+        });
     }
 
     sendChatMessage() {
