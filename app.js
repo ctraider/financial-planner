@@ -11,6 +11,7 @@ class BudgetApp {
         this.expenseIncomeChart = null;
         this.balanceChart = null;
         this.savingsChart = null;
+        this.editingExpenseCategory = null;
 
         this.defaultCategories = [
             {value: 'food', name: 'Еда'},
@@ -1053,10 +1054,14 @@ class BudgetApp {
         if (modal) {
             modal.classList.add('hidden');
             document.body.style.overflow = '';
-            
+
             // Reset forms
             const form = modal.querySelector('form');
             if (form) form.reset();
+
+            if (modalId === 'expenseModal') {
+                this.resetExpenseForm();
+            }
         }
     }
 
@@ -1152,7 +1157,49 @@ class BudgetApp {
     }
 
     editExpenses() {
+        this.resetExpenseForm();
         this.showModal('expenseModal');
+    }
+
+    resetExpenseForm() {
+        const categoryInput = document.getElementById('expenseCategory');
+        const plannedInput = document.getElementById('expensePlanned');
+        const actualInput = document.getElementById('expenseActual');
+
+        if (categoryInput) {
+            categoryInput.disabled = false;
+            categoryInput.value = '';
+        }
+
+        if (plannedInput) {
+            plannedInput.disabled = false;
+            plannedInput.value = '';
+        }
+
+        if (actualInput) {
+            actualInput.value = '';
+        }
+
+        this.editingExpenseCategory = null;
+    }
+
+    showExpenseEditForm(category) {
+        const expense = this.data.monthlyBudget.expenses[category];
+        if (!expense) return;
+
+        const categoryInput = document.getElementById('expenseCategory');
+        const plannedInput = document.getElementById('expensePlanned');
+        const actualInput = document.getElementById('expenseActual');
+
+        if (categoryInput && plannedInput && actualInput) {
+            categoryInput.value = expense.category;
+            categoryInput.disabled = true;
+            plannedInput.value = expense.planned;
+            plannedInput.disabled = true;
+            actualInput.value = expense.actual;
+            this.editingExpenseCategory = category;
+            this.showModal('expenseModal');
+        }
     }
 
     handleIncomeSubmit(e) {
@@ -1179,19 +1226,23 @@ class BudgetApp {
         e.preventDefault();
 
         const category = document.getElementById('expenseCategory').value.trim();
-        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const planned = parseFloat(document.getElementById('expensePlanned').value);
+        const actual = parseFloat(document.getElementById('expenseActual').value);
 
-        if (!category || isNaN(amount)) {
+        if (!category || isNaN(planned) || isNaN(actual)) {
             this.showNotification('Пожалуйста, заполните все поля');
             return;
         }
 
-        this.data.monthlyBudget.expenses[category] = {planned: amount, actual: amount, category: category};
+        if (this.editingExpenseCategory) {
+            this.data.monthlyBudget.expenses[this.editingExpenseCategory].actual = actual;
+        } else {
+            this.data.monthlyBudget.expenses[category] = {planned: planned, actual: actual, category: category};
+        }
+
         this.saveData();
         this.updateStats();
-        if (this.currentSection === 'analytics') {
-            this.renderAnalytics();
-        }
+        this.renderAnalytics();
         this.hideModal('expenseModal');
     }
 
