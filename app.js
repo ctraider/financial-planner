@@ -491,9 +491,11 @@ class BudgetApp {
     }
 
     updateStats() {
-        const totalIncome = Object.values(this.data.monthlyBudget.income).reduce((sum, val) => sum + val, 0);
-        const totalExpenses = Object.values(this.data.monthlyBudget.expenses).reduce((sum, exp) => sum + exp.actual, 0);
-        const balance = this.counterData.balance;
+        const totalIncome = Object.values(this.data.monthlyBudget.income)
+            .reduce((sum, val) => sum + val, 0);
+        const totalExpenses = Object.values(this.data.monthlyBudget.expenses)
+            .reduce((sum, exp) => sum + exp.actual, 0);
+        const balance = totalIncome - totalExpenses;
 
         const totalBalanceEl = document.getElementById('totalBalance');
         if (totalBalanceEl) {
