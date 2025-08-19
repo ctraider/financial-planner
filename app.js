@@ -509,7 +509,7 @@ class BudgetApp {
         
         container.innerHTML = '';
 
-        this.currentTransactions.forEach(transaction => {
+        this.currentTransactions.forEach((transaction, index) => {
             const transactionCard = document.createElement('div');
             transactionCard.className = 'transaction-card';
             transactionCard.innerHTML = `
@@ -517,8 +517,14 @@ class BudgetApp {
                     <div class="transaction-description">${transaction.description}</div>
                     <div class="transaction-meta">${this.formatDate(transaction.date)} • ${this.getCategoryName(transaction.category)}</div>
                 </div>
-                <div class="transaction-amount ${transaction.amount > 0 ? 'positive' : 'negative'}">
-                    ${transaction.amount > 0 ? '+' : ''}${this.formatCurrency(Math.abs(transaction.amount))}
+                <div class="transaction-meta-container">
+                    <div class="transaction-amount ${transaction.amount > 0 ? 'positive' : 'negative'}">
+                        ${transaction.amount > 0 ? '+' : ''}${this.formatCurrency(Math.abs(transaction.amount))}
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="btn btn--secondary btn--sm" onclick="app.editTransaction(${index})">✏️</button>
+                        <button class="btn btn--secondary btn--sm" onclick="app.deleteTransaction(${index})">🗑️</button>
+                    </div>
                 </div>
             `;
             container.appendChild(transactionCard);
@@ -548,8 +554,10 @@ class BudgetApp {
                     <div class="progress-fill" style="width: ${percentage}%"></div>
                 </div>
                 <div class="goal-percentage">${percentage}% завершено</div>
-                <div style="margin-top: 16px;">
+                <div class="goal-actions">
                     <button class="btn btn--secondary btn--sm" onclick="app.addToGoal(${index})">+ Пополнить</button>
+                    <button class="btn btn--secondary btn--sm" onclick="app.editGoal(${index})">✏️</button>
+                    <button class="btn btn--secondary btn--sm" onclick="app.deleteGoal(${index})">🗑️</button>
                 </div>
             `;
             container.appendChild(goalCard);
@@ -1068,6 +1076,96 @@ class BudgetApp {
             } else if (this.currentSection === 'dashboard') {
                 this.renderGoalsPreview();
             }
+        }
+    }
+
+    editIncome() {
+        const salary = parseFloat(prompt('Новая зарплата', this.data.monthlyBudget.income.salary));
+        const freelance = parseFloat(prompt('Новый доход от фриланса', this.data.monthlyBudget.income.freelance));
+        if (!isNaN(salary)) {
+            this.data.monthlyBudget.income.salary = salary;
+        }
+        if (!isNaN(freelance)) {
+            this.data.monthlyBudget.income.freelance = freelance;
+        }
+        this.updateStats();
+    }
+
+    editExpenses() {
+        const categories = Object.keys(this.data.monthlyBudget.expenses);
+        const category = prompt('Категория для редактирования: ' + categories.join(', '));
+        if (category && this.data.monthlyBudget.expenses[category]) {
+            const value = parseFloat(prompt('Новая сумма для ' + this.getCategoryName(category), this.data.monthlyBudget.expenses[category].actual));
+            if (!isNaN(value)) {
+                this.data.monthlyBudget.expenses[category].actual = value;
+                this.updateStats();
+                if (this.currentSection === 'analytics') {
+                    this.renderAnalytics();
+                }
+            }
+        }
+    }
+
+    editSavings() {
+        const value = parseFloat(prompt('Новая сумма накоплений', this.data.monthlyBudget.expenses.savings.actual));
+        if (!isNaN(value)) {
+            this.data.monthlyBudget.expenses.savings.actual = value;
+            this.updateStats();
+            if (this.currentSection === 'analytics') {
+                this.renderAnalytics();
+            }
+        }
+    }
+
+    editTransaction(index) {
+        const transaction = this.currentTransactions[index];
+        if (!transaction) return;
+        const description = prompt('Описание транзакции', transaction.description);
+        if (description === null) return;
+        const amount = parseFloat(prompt('Сумма', transaction.amount));
+        if (isNaN(amount)) return;
+        transaction.description = description;
+        transaction.amount = amount;
+        transaction.type = amount >= 0 ? 'credit' : 'debit';
+        this.data.recentTransactions = [...this.currentTransactions];
+        this.renderTransactionsList();
+        this.renderRecentTransactions();
+    }
+
+    deleteTransaction(index) {
+        if (!confirm('Удалить транзакцию?')) return;
+        this.currentTransactions.splice(index, 1);
+        this.data.recentTransactions = [...this.currentTransactions];
+        this.renderTransactionsList();
+        this.renderRecentTransactions();
+    }
+
+    editGoal(index) {
+        const goal = this.data.userProfile.financialGoals[index];
+        if (!goal) return;
+        const name = prompt('Название цели', goal.name);
+        if (!name) return;
+        const target = parseFloat(prompt('Целевая сумма', goal.target));
+        if (isNaN(target)) return;
+        const current = parseFloat(prompt('Текущая сумма', goal.current));
+        if (isNaN(current)) return;
+        goal.name = name;
+        goal.target = target;
+        goal.current = current;
+        if (this.currentSection === 'goals') {
+            this.renderGoals();
+        } else if (this.currentSection === 'dashboard') {
+            this.renderGoalsPreview();
+        }
+    }
+
+    deleteGoal(index) {
+        if (!confirm('Удалить цель?')) return;
+        this.data.userProfile.financialGoals.splice(index, 1);
+        if (this.currentSection === 'goals') {
+            this.renderGoals();
+        } else if (this.currentSection === 'dashboard') {
+            this.renderGoalsPreview();
         }
     }
 
