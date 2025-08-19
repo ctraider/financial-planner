@@ -6,7 +6,9 @@ class BudgetApp {
         this.currentSection = 'dashboard';
         this.data = this.loadInitialData();
         this.currentTransactions = [];
-        
+        this.expensesChart = null;
+        this.balanceChart = null;
+
         this.init();
     }
 
@@ -510,7 +512,11 @@ class BudgetApp {
         const data = Object.values(expenses).map(exp => exp.actual);
         const colors = ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325'];
 
-        new Chart(ctx, {
+        if (this.expensesChart) {
+            this.expensesChart.destroy();
+        }
+
+        this.expensesChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -560,7 +566,11 @@ class BudgetApp {
             balanceData.push(baseBalance + variation);
         }
 
-        new Chart(ctx, {
+        if (this.balanceChart) {
+            this.balanceChart.destroy();
+        }
+
+        this.balanceChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
