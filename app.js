@@ -895,8 +895,10 @@ class BudgetApp {
         const balanceContainer = document.getElementById('counterBalanceContainer');
         if (!balanceEl || !incomeEl || !expenseEl || !balanceContainer) return;
 
-        const totalIncome = this.data.monthlyBudget.income.salary + this.data.monthlyBudget.income.freelance;
-        const totalExpenses = Object.values(this.data.monthlyBudget.expenses).reduce((sum, exp) => sum + exp.actual, 0);
+        const totalIncome = Object.values(this.data.monthlyBudget.income)
+            .reduce((sum, inc) => sum + inc, 0);
+        const totalExpenses = Object.values(this.data.monthlyBudget.expenses)
+            .reduce((sum, exp) => sum + exp.actual, 0);
         const net = totalIncome - totalExpenses;
 
         incomeEl.textContent = this.formatCurrency(totalIncome);
@@ -907,17 +909,23 @@ class BudgetApp {
             this.counterInterval = null;
         }
 
-        this.counterValue = net;
+        this.counterValue = 0;
         balanceEl.textContent = this.formatCurrency(this.counterValue);
         balanceContainer.classList.toggle('negative', this.counterValue < 0);
         balanceContainer.classList.toggle('positive', this.counterValue >= 0);
 
         if (net !== 0) {
+            const step = net > 0 ? 1 : -1;
             this.counterInterval = setInterval(() => {
-                this.counterValue += net > 0 ? 1 : -1;
+                this.counterValue += step;
                 balanceEl.textContent = this.formatCurrency(this.counterValue);
                 balanceContainer.classList.toggle('negative', this.counterValue < 0);
                 balanceContainer.classList.toggle('positive', this.counterValue >= 0);
+
+                if (this.counterValue === net) {
+                    clearInterval(this.counterInterval);
+                    this.counterInterval = null;
+                }
             }, 1000);
         }
     }
