@@ -245,12 +245,38 @@ class BudgetApp {
             });
         }
 
+        // Income list modal
+        const closeIncomeListModal = document.getElementById('closeIncomeListModal');
+        if (closeIncomeListModal) {
+            closeIncomeListModal.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('incomeListModal');
+            });
+        }
+
+        const cancelIncomeList = document.getElementById('cancelIncomeList');
+        if (cancelIncomeList) {
+            cancelIncomeList.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('incomeListModal');
+            });
+        }
+
+        const addIncomeBtn = document.getElementById('addIncome');
+        if (addIncomeBtn) {
+            addIncomeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showIncomeEditForm();
+            });
+        }
+
         // Income modal
         const closeIncomeModal = document.getElementById('closeIncomeModal');
         if (closeIncomeModal) {
             closeIncomeModal.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.hideModal('incomeModal');
+                this.showModal('incomeListModal');
             });
         }
 
@@ -259,6 +285,7 @@ class BudgetApp {
             cancelIncome.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.hideModal('incomeModal');
+                this.showModal('incomeListModal');
             });
         }
 
@@ -1147,8 +1174,63 @@ class BudgetApp {
         }
     }
 
-    editIncome() {
+    renderIncomeList() {
+        const container = document.getElementById('incomeList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        Object.entries(this.data.monthlyBudget.income).forEach(([category, amount]) => {
+            const item = document.createElement('div');
+            item.className = 'income-item';
+            item.innerHTML = `
+                <span class="income-name">${category}</span>
+                <span class="income-amount">${this.formatCurrency(amount)}</span>
+                <div class="income-actions">
+                    <button class="btn btn--secondary btn--sm" onclick="app.showIncomeEditForm('${category}')">✏️</button>
+                    <button class="btn btn--secondary btn--sm" onclick="app.deleteIncome('${category}')">🗑️</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    showIncomeEditForm(category) {
+        const categoryInput = document.getElementById('incomeCategory');
+        const amountInput = document.getElementById('incomeAmount');
+        const originalInput = document.getElementById('incomeOriginalCategory');
+        const header = document.querySelector('#incomeModal .modal-header h3');
+
+        if (category) {
+            categoryInput.value = category;
+            amountInput.value = this.data.monthlyBudget.income[category];
+            originalInput.value = category;
+            if (header) header.textContent = 'Редактировать доход';
+        } else {
+            categoryInput.value = '';
+            amountInput.value = '';
+            originalInput.value = '';
+            if (header) header.textContent = 'Добавить доход';
+        }
+
+        this.hideModal('incomeListModal');
         this.showModal('incomeModal');
+    }
+
+    deleteIncome(category) {
+        if (!confirm('Удалить доход?')) return;
+        delete this.data.monthlyBudget.income[category];
+        this.saveData();
+        this.updateStats();
+        if (this.currentSection === 'analytics') {
+            this.renderAnalytics();
+        }
+        this.renderIncomeList();
+    }
+
+    editIncome() {
+        this.renderIncomeList();
+        this.showModal('incomeListModal');
     }
 
     editExpenses() {
@@ -1160,19 +1242,26 @@ class BudgetApp {
 
         const category = document.getElementById('incomeCategory').value.trim();
         const amount = parseFloat(document.getElementById('incomeAmount').value);
+        const original = document.getElementById('incomeOriginalCategory').value;
 
         if (!category || isNaN(amount)) {
             this.showNotification('Пожалуйста, заполните все поля');
             return;
         }
 
+        if (original && original !== category) {
+            delete this.data.monthlyBudget.income[original];
+        }
         this.data.monthlyBudget.income[category] = amount;
+        document.getElementById('incomeOriginalCategory').value = '';
         this.saveData();
         this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
         }
         this.hideModal('incomeModal');
+        this.showModal('incomeListModal');
+        this.renderIncomeList();
     }
 
     handleExpenseSubmit(e) {

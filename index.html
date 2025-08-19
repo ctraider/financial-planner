@@ -407,6 +407,23 @@
         </div>
     </div>
 
+    <!-- Income List Modal -->
+    <div id="incomeListModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Доходы</h3>
+                <button class="modal-close" id="closeIncomeListModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="incomeList"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn--secondary" id="cancelIncomeList">Закрыть</button>
+                    <button type="button" class="btn btn--primary" id="addIncome">+ Добавить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Income Modal -->
     <div id="incomeModal" class="modal hidden">
         <div class="modal-content">
@@ -416,6 +433,7 @@
             </div>
             <div class="modal-body">
                 <form id="incomeForm">
+                    <input type="hidden" id="incomeOriginalCategory">
                     <div class="form-group">
                         <label class="form-label">Категория</label>
                         <input type="text" class="form-control" id="incomeCategory" placeholder="Например: Зарплата">
