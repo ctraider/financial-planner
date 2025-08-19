@@ -1,0 +1,178 @@
+{
+  "userProfile": {
+    "name": "Александр",
+    "location": "Красноярск",
+    "monthlyIncome": 85000,
+    "currency": "RUB",
+    "financialGoals": [
+      {
+        "name": "Экстренный фонд",
+        "target": 200000,
+        "current": 75000,
+        "category": "emergency"
+      },
+      {
+        "name": "Отпуск",
+        "target": 120000,
+        "current": 45000,
+        "category": "travel"
+      },
+      {
+        "name": "Новый компьютер",
+        "target": 150000,
+        "current": 30000,
+        "category": "tech"
+      }
+    ]
+  },
+  "monthlyBudget": {
+    "income": {
+      "salary": 65000,
+      "freelance": 20000
+    },
+    "expenses": {
+      "housing": {
+        "planned": 25000,
+        "actual": 26500,
+        "category": "Жилье"
+      },
+      "food": {
+        "planned": 15000,
+        "actual": 18200,
+        "category": "Еда"
+      },
+      "transport": {
+        "planned": 8000,
+        "actual": 7500,
+        "category": "Транспорт"
+      },
+      "utilities": {
+        "planned": 6000,
+        "actual": 5800,
+        "category": "Коммунальные"
+      },
+      "entertainment": {
+        "planned": 10000,
+        "actual": 12300,
+        "category": "Развлечения"
+      },
+      "shopping": {
+        "planned": 8000,
+        "actual": 9100,
+        "category": "Покупки"
+      },
+      "health": {
+        "planned": 3000,
+        "actual": 2800,
+        "category": "Здоровье"
+      },
+      "savings": {
+        "planned": 10000,
+        "actual": 5000,
+        "category": "Накопления"
+      }
+    }
+  },
+  "recentTransactions": [
+    {
+      "date": "2025-08-19",
+      "description": "Зарплата",
+      "amount": 65000,
+      "category": "income",
+      "type": "credit"
+    },
+    {
+      "date": "2025-08-18",
+      "description": "Фриланс проект",
+      "amount": 8000,
+      "category": "income",
+      "type": "credit"
+    },
+    {
+      "date": "2025-08-18",
+      "description": "Продукты в Ленте",
+      "amount": -2340,
+      "category": "food",
+      "type": "debit"
+    },
+    {
+      "date": "2025-08-17",
+      "description": "Бензин",
+      "amount": -2800,
+      "category": "transport",
+      "type": "debit"
+    },
+    {
+      "date": "2025-08-16",
+      "description": "Кино с друзьями",
+      "amount": -1200,
+      "category": "entertainment",
+      "type": "debit"
+    },
+    {
+      "date": "2025-08-15",
+      "description": "Аренда квартиры",
+      "amount": -26500,
+      "category": "housing",
+      "type": "debit"
+    },
+    {
+      "date": "2025-08-14",
+      "description": "Интернет",
+      "amount": -800,
+      "category": "utilities",
+      "type": "debit"
+    },
+    {
+      "date": "2025-08-13",
+      "description": "Обед в кафе",
+      "amount": -1500,
+      "category": "food",
+      "type": "debit"
+    }
+  ],
+  "budgetInsights": {
+    "spendingTrends": {
+      "totalSpent": 85000,
+      "avgDailySpending": 2800,
+      "topCategories": [
+        "housing",
+        "food",
+        "entertainment"
+      ],
+      "savingsRate": 6
+    },
+    "recommendations": [
+      "Вы превысили бюджет на еду на 21%. Попробуйте планировать меню заранее.",
+      "Отличная работа с транспортными расходами - экономия 6%!",
+      "Рекомендуем увеличить накопления до 15% от дохода.",
+      "Развлечения занимают 14% бюджета - подумайте о бесплатных активностях."
+    ]
+  },
+  "gamification": {
+    "level": 7,
+    "experience": 2340,
+    "nextLevelExp": 3000,
+    "achievements": [
+      {
+        "name": "Экономный водитель",
+        "description": "Сэкономили на транспорте",
+        "earned": true
+      },
+      {
+        "name": "Мастер накоплений",
+        "description": "Накопили 50000 руб",
+        "earned": true
+      },
+      {
+        "name": "Планировщик бюджета",
+        "description": "Ведете бюджет 30 дней",
+        "earned": false
+      }
+    ],
+    "streaks": {
+      "budgetTracking": 23,
+      "savingsGoal": 12
+    }
+  }
+}
