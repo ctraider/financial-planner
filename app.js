@@ -316,6 +316,23 @@ class BudgetApp {
             expenseForm.addEventListener('submit', (e) => this.handleExpenseSubmit(e));
         }
 
+        // Expense list modal
+        const closeExpenseListModal = document.getElementById('closeExpenseListModal');
+        if (closeExpenseListModal) {
+            closeExpenseListModal.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('expenseListModal');
+            });
+        }
+
+        const addExpenseCategory = document.getElementById('addExpenseCategory');
+        if (addExpenseCategory) {
+            addExpenseCategory.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showExpenseEditForm();
+            });
+        }
+
         const goalForm = document.getElementById('goalForm');
         if (goalForm) {
             goalForm.addEventListener('submit', (e) => this.handleAddGoal(e));
@@ -1234,7 +1251,63 @@ class BudgetApp {
     }
 
     editExpenses() {
+        this.renderExpenseList();
+        this.showModal('expenseListModal');
+    }
+
+    renderExpenseList() {
+        const container = document.getElementById('expenseList');
+        if (!container) return;
+
+        container.innerHTML = '';
+        Object.entries(this.data.monthlyBudget.expenses).forEach(([key, exp]) => {
+            const item = document.createElement('div');
+            item.className = 'expense-item';
+            item.innerHTML = `
+                <div class="expense-info">
+                    <div class="expense-name">${this.getCategoryName(key)}</div>
+                    <div class="expense-amounts">План: ${this.formatCurrency(exp.planned)} · Факт: ${this.formatCurrency(exp.actual)}</div>
+                </div>
+                <div class="expense-actions">
+                    <button class="btn btn--secondary btn--sm" onclick="app.showExpenseEditForm('${key}')">✏️</button>
+                    <button class="btn btn--secondary btn--sm" onclick="app.deleteExpenseCategory('${key}')">🗑️</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    showExpenseEditForm(category) {
+        const form = document.getElementById('expenseForm');
+        if (!form) return;
+
+        form.reset();
+        if (category) {
+            const data = this.data.monthlyBudget.expenses[category];
+            if (data) {
+                document.getElementById('expenseCategory').value = category;
+                document.getElementById('expenseAmount').value = data.planned;
+            }
+            form.dataset.mode = 'edit';
+            form.dataset.originalCategory = category;
+        } else {
+            form.dataset.mode = 'add';
+            delete form.dataset.originalCategory;
+        }
+
+        this.hideModal('expenseListModal');
         this.showModal('expenseModal');
+    }
+
+    deleteExpenseCategory(category) {
+        if (!confirm('Удалить категорию?')) return;
+        delete this.data.monthlyBudget.expenses[category];
+        this.saveData();
+        this.updateStats();
+        if (this.currentSection === 'analytics') {
+            this.renderAnalytics();
+        }
+        this.renderExpenseList();
     }
 
     handleIncomeSubmit(e) {
@@ -1269,19 +1342,37 @@ class BudgetApp {
 
         const category = document.getElementById('expenseCategory').value.trim();
         const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const form = document.getElementById('expenseForm');
+        const mode = form.dataset.mode || 'add';
+        const originalCategory = form.dataset.originalCategory;
 
         if (!category || isNaN(amount)) {
             this.showNotification('Пожалуйста, заполните все поля');
             return;
         }
 
-        this.data.monthlyBudget.expenses[category] = {planned: amount, actual: amount, category: category};
+        if (mode === 'edit') {
+            const existing = this.data.monthlyBudget.expenses[originalCategory] || {};
+            if (originalCategory && originalCategory !== category) {
+                delete this.data.monthlyBudget.expenses[originalCategory];
+            }
+            this.data.monthlyBudget.expenses[category] = {
+                planned: amount,
+                actual: existing.actual !== undefined ? existing.actual : amount,
+                category: category
+            };
+        } else {
+            this.data.monthlyBudget.expenses[category] = {planned: amount, actual: amount, category: category};
+        }
+
         this.saveData();
         this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
         }
         this.hideModal('expenseModal');
+        this.showModal('expenseListModal');
+        this.renderExpenseList();
     }
 
     editSavings() {
