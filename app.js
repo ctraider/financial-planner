@@ -947,14 +947,30 @@ class BudgetApp {
         incomeEl.textContent = this.formatCurrency(totalIncome);
         expenseEl.textContent = this.formatCurrency(totalExpenses);
 
-
-
-                if (this.counterValue === net) {
-                    clearInterval(this.counterInterval);
-                    this.counterInterval = null;
-                }
-            }, 1000);
+        if (this.counterInterval) {
+            clearInterval(this.counterInterval);
+            this.counterInterval = null;
         }
+
+        this.counterValue = 0;
+        balanceEl.textContent = this.formatCurrency(this.counterValue);
+        balanceContainer.classList.toggle('negative', net < 0);
+
+        const step = net > 0 ? Math.ceil(net / 100) : Math.floor(net / 100);
+        this.counterInterval = setInterval(() => {
+            this.counterValue += step;
+
+            if ((step > 0 && this.counterValue >= net) ||
+                (step < 0 && this.counterValue <= net)) {
+                this.counterValue = net;
+                balanceEl.textContent = this.formatCurrency(this.counterValue);
+                clearInterval(this.counterInterval);
+                this.counterInterval = null;
+                return;
+            }
+
+            balanceEl.textContent = this.formatCurrency(this.counterValue);
+        }, 50);
     }
 
     updateExpBar() {
