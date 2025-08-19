@@ -12,6 +12,8 @@ class BudgetApp {
         this.balanceChart = null;
         this.savingsChart = null;
 
+        this.selectedMonth = this.getCurrentMonth();
+
         this.defaultCategories = [
             {value: 'food', name: 'Еда'},
             {value: 'transport', name: 'Транспорт'},
@@ -25,6 +27,24 @@ class BudgetApp {
         this.customCategories = [];
 
         this.init();
+    }
+
+    getCurrentMonth() {
+        const d = new Date();
+        return d.toISOString().slice(0, 7);
+    }
+
+    getBudgetForMonth(month) {
+        if (!this.data.monthlyBudgets) {
+            this.data.monthlyBudgets = {};
+        }
+        if (!this.data.monthlyBudgets[month]) {
+            this.data.monthlyBudgets[month] = { income: {}, expenses: {} };
+        }
+        if (month === this.getCurrentMonth()) {
+            this.data.monthlyBudget = this.data.monthlyBudgets[month];
+        }
+        return this.data.monthlyBudgets[month];
     }
 
     loadInitialData() {
@@ -120,6 +140,17 @@ class BudgetApp {
                 this.customCategories = this.data.customCategories || [];
             }
         }
+
+        const currentMonth = this.getCurrentMonth();
+        if (!this.data.monthlyBudgets) {
+            this.data.monthlyBudgets = {};
+        }
+        if (this.data.monthlyBudget) {
+            this.data.monthlyBudgets[currentMonth] = this.data.monthlyBudget;
+        } else if (!this.data.monthlyBudgets[currentMonth]) {
+            this.data.monthlyBudgets[currentMonth] = { income: {}, expenses: {} };
+        }
+        this.data.monthlyBudget = this.data.monthlyBudgets[currentMonth];
 
         this.data.customCategories = this.customCategories;
     }
@@ -432,6 +463,42 @@ class BudgetApp {
                 }
             });
         }
+
+        // Analytics controls
+        const monthInput = document.getElementById('analyticsMonth');
+        if (monthInput) {
+            monthInput.value = this.selectedMonth;
+            monthInput.addEventListener('change', (e) => {
+                this.selectedMonth = e.target.value;
+                this.renderAnalytics();
+            });
+        }
+
+        document.querySelectorAll('.analytics-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.analytics-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.analytics-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                const content = document.getElementById(tab.dataset.tab);
+                if (content) content.classList.add('active');
+            });
+        });
+
+        const addExpenseBtnAnalytics = document.getElementById('addExpenseButton');
+        if (addExpenseBtnAnalytics) {
+            addExpenseBtnAnalytics.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showExpenseEditForm();
+            });
+        }
+
+        const addIncomeBtnAnalytics = document.getElementById('addIncomeButton');
+        if (addIncomeBtnAnalytics) {
+            addIncomeBtnAnalytics.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showIncomeEditForm();
+            });
+        }
     }
 
     setupTheme() {
@@ -696,12 +763,12 @@ class BudgetApp {
     }
 
     renderAnalytics() {
+        const monthInput = document.getElementById('analyticsMonth');
+        if (monthInput) {
+            monthInput.value = this.selectedMonth;
+        }
         this.renderExpensesChart();
         this.renderIncomeChart();
-        this.renderExpenseIncomeChart();
-        this.renderBalanceChart();
-        this.renderSavingsChart();
-        this.renderInsights();
     }
 
     renderExpensesChart() {
@@ -710,7 +777,8 @@ class BudgetApp {
         
         const ctx = canvas.getContext('2d');
         
-        const expenses = this.data.monthlyBudget.expenses;
+        const budget = this.getBudgetForMonth(this.selectedMonth);
+        const expenses = budget.expenses;
         const labels = Object.values(expenses).map(exp => exp.category);
         const data = Object.values(expenses).map(exp => exp.actual);
         const colors = ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325'];
@@ -753,7 +821,8 @@ class BudgetApp {
 
         const ctx = canvas.getContext('2d');
 
-        const income = this.data.monthlyBudget.income;
+        const budget = this.getBudgetForMonth(this.selectedMonth);
+        const income = budget.income;
         const labels = Object.keys(income).map(key => {
             const names = { salary: 'Зарплата', freelance: 'Фриланс' };
             return names[key] || key;
@@ -1197,7 +1266,8 @@ class BudgetApp {
 
         container.innerHTML = '';
 
-        Object.entries(this.data.monthlyBudget.income).forEach(([category, amount]) => {
+        const income = this.getBudgetForMonth(this.selectedMonth).income;
+        Object.entries(income).forEach(([category, amount]) => {
             const item = document.createElement('div');
             item.className = 'income-item';
             item.innerHTML = `
@@ -1218,9 +1288,10 @@ class BudgetApp {
         const originalInput = document.getElementById('incomeOriginalCategory');
         const header = document.querySelector('#incomeModal .modal-header h3');
 
+        const budget = this.getBudgetForMonth(this.selectedMonth);
         if (category) {
             categoryInput.value = category;
-            amountInput.value = this.data.monthlyBudget.income[category];
+            amountInput.value = budget.income[category];
             originalInput.value = category;
             if (header) header.textContent = 'Редактировать доход';
         } else {
@@ -1236,9 +1307,13 @@ class BudgetApp {
 
     deleteIncome(category) {
         if (!confirm('Удалить доход?')) return;
-        delete this.data.monthlyBudget.income[category];
+        const budget = this.getBudgetForMonth(this.selectedMonth);
+        delete budget.income[category];
+        if (this.selectedMonth === this.getCurrentMonth()) {
+            this.data.monthlyBudget = budget;
+            this.updateStats();
+        }
         this.saveData();
-        this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
         }
@@ -1260,7 +1335,8 @@ class BudgetApp {
         if (!container) return;
 
         container.innerHTML = '';
-        Object.entries(this.data.monthlyBudget.expenses).forEach(([key, exp]) => {
+        const expenses = this.getBudgetForMonth(this.selectedMonth).expenses;
+        Object.entries(expenses).forEach(([key, exp]) => {
             const item = document.createElement('div');
             item.className = 'expense-item';
             item.innerHTML = `
@@ -1282,8 +1358,9 @@ class BudgetApp {
         if (!form) return;
 
         form.reset();
+        const budget = this.getBudgetForMonth(this.selectedMonth);
         if (category) {
-            const data = this.data.monthlyBudget.expenses[category];
+            const data = budget.expenses[category];
             if (data) {
                 document.getElementById('expenseCategory').value = category;
                 document.getElementById('expenseAmount').value = data.planned;
@@ -1301,9 +1378,13 @@ class BudgetApp {
 
     deleteExpenseCategory(category) {
         if (!confirm('Удалить категорию?')) return;
-        delete this.data.monthlyBudget.expenses[category];
+        const budget = this.getBudgetForMonth(this.selectedMonth);
+        delete budget.expenses[category];
+        if (this.selectedMonth === this.getCurrentMonth()) {
+            this.data.monthlyBudget = budget;
+            this.updateStats();
+        }
         this.saveData();
-        this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
         }
@@ -1322,19 +1403,21 @@ class BudgetApp {
             return;
         }
 
+        const budget = this.getBudgetForMonth(this.selectedMonth);
         if (original && original !== category) {
-            delete this.data.monthlyBudget.income[original];
+            delete budget.income[original];
         }
-        this.data.monthlyBudget.income[category] = amount;
+        budget.income[category] = amount;
+        if (this.selectedMonth === this.getCurrentMonth()) {
+            this.data.monthlyBudget = budget;
+            this.updateStats();
+        }
         document.getElementById('incomeOriginalCategory').value = '';
         this.saveData();
-        this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
         }
         this.hideModal('incomeModal');
-        this.showModal('incomeListModal');
-        this.renderIncomeList();
     }
 
     handleExpenseSubmit(e) {
@@ -1351,28 +1434,31 @@ class BudgetApp {
             return;
         }
 
+        const budget = this.getBudgetForMonth(this.selectedMonth);
         if (mode === 'edit') {
-            const existing = this.data.monthlyBudget.expenses[originalCategory] || {};
+            const existing = budget.expenses[originalCategory] || {};
             if (originalCategory && originalCategory !== category) {
-                delete this.data.monthlyBudget.expenses[originalCategory];
+                delete budget.expenses[originalCategory];
             }
-            this.data.monthlyBudget.expenses[category] = {
+            budget.expenses[category] = {
                 planned: amount,
                 actual: existing.actual !== undefined ? existing.actual : amount,
                 category: category
             };
         } else {
-            this.data.monthlyBudget.expenses[category] = {planned: amount, actual: amount, category: category};
+            budget.expenses[category] = {planned: amount, actual: amount, category: category};
+        }
+
+        if (this.selectedMonth === this.getCurrentMonth()) {
+            this.data.monthlyBudget = budget;
+            this.updateStats();
         }
 
         this.saveData();
-        this.updateStats();
         if (this.currentSection === 'analytics') {
             this.renderAnalytics();
         }
         this.hideModal('expenseModal');
-        this.showModal('expenseListModal');
-        this.renderExpenseList();
     }
 
     editSavings() {

@@ -1693,3 +1693,38 @@ select.form-control {
   cursor: pointer;
   padding: 0 4px;
 }
+
+/* Analytics tabs */
+.analytics-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.analytics-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.analytics-tab {
+  padding: 0.5rem 1rem;
+  background: var(--color-secondary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.analytics-tab.active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.analytics-content {
+  display: none;
+}
+
+.analytics-content.active {
+  display: block;
+}

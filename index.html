@@ -170,59 +170,32 @@
 
             <!-- Analytics Section -->
             <section id="analytics" class="content-section">
-                <div class="analytics-grid">
+                <div class="analytics-controls">
+                    <input type="month" id="analyticsMonth">
+                </div>
+                <div class="analytics-tabs">
+                    <button class="analytics-tab active" data-tab="expensesContent">Расходы</button>
+                    <button class="analytics-tab" data-tab="incomeContent">Зачисления</button>
+                </div>
+                <div id="expensesContent" class="analytics-content active">
                     <div class="card chart-card">
                         <div class="card__body">
                             <h3>Расходы по категориям</h3>
                             <div class="chart-container" style="position: relative; height: 300px;">
                                 <canvas id="expensesChart"></canvas>
                             </div>
+                            <button class="btn btn--primary" id="addExpenseButton">+ Добавить расход</button>
                         </div>
                     </div>
-
+                </div>
+                <div id="incomeContent" class="analytics-content">
                     <div class="card chart-card">
                         <div class="card__body">
                             <h3>Доходы по источникам</h3>
                             <div class="chart-container" style="position: relative; height: 300px;">
                                 <canvas id="incomeChart"></canvas>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="card chart-card">
-                        <div class="card__body">
-                            <h3>Расходы vs Доходы</h3>
-                            <div class="chart-container" style="position: relative; height: 300px;">
-                                <canvas id="expenseIncomeChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card chart-card">
-                        <div class="card__body">
-                            <h3>Динамика баланса</h3>
-                            <div class="chart-container" style="position: relative; height: 300px;">
-                                <canvas id="balanceChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card chart-card savings-card">
-                        <div class="card__body">
-                            <h3>Прогресс накопления</h3>
-                            <div class="chart-container" style="position: relative; height: 200px;">
-                                <canvas id="savingsChart"></canvas>
-                                <div class="chart-center-text" id="savingsGoalText"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card insights-card">
-                        <div class="card__body">
-                            <h3>Аналитические выводы</h3>
-                            <div class="insights-list" id="insightsList">
-                                <!-- Insights will be populated by JS -->
-                            </div>
+                            <button class="btn btn--primary" id="addIncomeButton">+ Добавить доход</button>
                         </div>
                     </div>
                 </div>
