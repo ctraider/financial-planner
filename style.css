@@ -1501,6 +1501,28 @@ select.form-control {
   display: none;
 }
 
+/* Counter styles */
+.counter-card .form-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+.counter-balance {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: var(--space-16);
+}
+
+.counter-balance.negative {
+  color: var(--color-red-500);
+}
+
+.counter-summary {
+  margin-top: var(--space-16);
+}
+
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(100%); }
   to { opacity: 1; transform: translateX(0); }

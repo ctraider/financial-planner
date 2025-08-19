@@ -8,6 +8,7 @@ class BudgetApp {
         this.currentTransactions = [];
         this.expensesChart = null;
         this.balanceChart = null;
+        this.counterData = JSON.parse(localStorage.getItem('counterData')) || {balance: 0, income: 0, expense: 0};
 
         this.init();
     }
@@ -310,6 +311,7 @@ class BudgetApp {
             transactions: 'Транзакции',
             goals: 'Цели',
             analytics: 'Аналитика',
+            counter: 'Счетчик',
             'ai-assistant': 'AI Помощник',
             settings: 'Настройки'
         };
@@ -333,6 +335,9 @@ class BudgetApp {
                 break;
             case 'analytics':
                 setTimeout(() => this.renderAnalytics(), 100);
+                break;
+            case 'counter':
+                this.renderCounter();
                 break;
         }
     }
@@ -634,6 +639,70 @@ class BudgetApp {
             insightElement.textContent = insight;
             container.appendChild(insightElement);
         });
+    }
+
+    renderCounter() {
+        const balanceEl = document.getElementById('counterBalanceValue');
+        const incomeEl = document.getElementById('counterIncomeTotal');
+        const expenseEl = document.getElementById('counterExpenseTotal');
+        const balanceContainer = document.getElementById('counterBalanceContainer');
+        if (!balanceEl || !incomeEl || !expenseEl || !balanceContainer) return;
+
+        balanceEl.textContent = this.formatCurrency(this.counterData.balance);
+        incomeEl.textContent = this.formatCurrency(this.counterData.income);
+        expenseEl.textContent = this.formatCurrency(this.counterData.expense);
+        balanceContainer.classList.toggle('negative', this.counterData.balance < 0);
+
+        this.setupCounterListeners();
+    }
+
+    setupCounterListeners() {
+        const ids = ['setInitialBalanceBtn', 'addIncomeBtn', 'addExpenseBtn'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.replaceWith(el.cloneNode(true));
+            }
+        });
+
+        const setBtn = document.getElementById('setInitialBalanceBtn');
+        const incomeBtn = document.getElementById('addIncomeBtn');
+        const expenseBtn = document.getElementById('addExpenseBtn');
+
+        if (setBtn) {
+            setBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('initialBalanceInput').value) || 0;
+                this.counterData = {balance: amount, income: 0, expense: 0};
+                this.saveCounterData();
+                this.renderCounter();
+            });
+        }
+
+        if (incomeBtn) {
+            incomeBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('incomeInput').value) || 0;
+                this.counterData.balance += amount;
+                this.counterData.income += amount;
+                this.saveCounterData();
+                this.renderCounter();
+                document.getElementById('incomeInput').value = '';
+            });
+        }
+
+        if (expenseBtn) {
+            expenseBtn.addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('expenseInput').value) || 0;
+                this.counterData.balance -= amount;
+                this.counterData.expense += amount;
+                this.saveCounterData();
+                this.renderCounter();
+                document.getElementById('expenseInput').value = '';
+            });
+        }
+    }
+
+    saveCounterData() {
+        localStorage.setItem('counterData', JSON.stringify(this.counterData));
     }
 
     updateExpBar() {
@@ -991,7 +1060,7 @@ function handleSwipe() {
     const diff = touchStartX - touchEndX;
     
     if (Math.abs(diff) > threshold && window.app) {
-        const sections = ['dashboard', 'transactions', 'goals', 'analytics', 'ai-assistant', 'settings'];
+        const sections = ['dashboard', 'transactions', 'goals', 'analytics', 'counter', 'ai-assistant', 'settings'];
         const currentIndex = sections.indexOf(window.app.currentSection);
         
         if (diff > 0 && currentIndex < sections.length - 1) {
