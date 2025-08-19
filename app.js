@@ -11,8 +11,7 @@ class BudgetApp {
         this.expenseIncomeChart = null;
         this.balanceChart = null;
         this.savingsChart = null;
-        this.counterValue = 0;
-        this.counterInterval = null;
+
         this.defaultCategories = [
             {value: 'food', name: 'Еда'},
             {value: 'transport', name: 'Транспорт'},
@@ -208,6 +207,50 @@ class BudgetApp {
                 e.preventDefault();
                 this.hideModal('addGoalModal');
             });
+        }
+
+        // Income modal
+        const closeIncomeModal = document.getElementById('closeIncomeModal');
+        if (closeIncomeModal) {
+            closeIncomeModal.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('incomeModal');
+            });
+        }
+
+        const cancelIncome = document.getElementById('cancelIncome');
+        if (cancelIncome) {
+            cancelIncome.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('incomeModal');
+            });
+        }
+
+        const incomeForm = document.getElementById('incomeForm');
+        if (incomeForm) {
+            incomeForm.addEventListener('submit', (e) => this.handleIncomeSubmit(e));
+        }
+
+        // Expense modal
+        const closeExpenseModal = document.getElementById('closeExpenseModal');
+        if (closeExpenseModal) {
+            closeExpenseModal.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('expenseModal');
+            });
+        }
+
+        const cancelExpense = document.getElementById('cancelExpense');
+        if (cancelExpense) {
+            cancelExpense.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideModal('expenseModal');
+            });
+        }
+
+        const expenseForm = document.getElementById('expenseForm');
+        if (expenseForm) {
+            expenseForm.addEventListener('submit', (e) => this.handleExpenseSubmit(e));
         }
 
         const goalForm = document.getElementById('goalForm');
@@ -412,9 +455,9 @@ class BudgetApp {
     }
 
     updateStats() {
-        const totalIncome = this.data.monthlyBudget.income.salary + this.data.monthlyBudget.income.freelance;
+        const totalIncome = Object.values(this.data.monthlyBudget.income).reduce((sum, val) => sum + val, 0);
         const totalExpenses = Object.values(this.data.monthlyBudget.expenses).reduce((sum, exp) => sum + exp.actual, 0);
-        const balance = totalIncome - totalExpenses;
+        const balance = this.counterData.balance;
 
         const totalBalanceEl = document.getElementById('totalBalance');
         if (totalBalanceEl) {
@@ -904,23 +947,7 @@ class BudgetApp {
         incomeEl.textContent = this.formatCurrency(totalIncome);
         expenseEl.textContent = this.formatCurrency(totalExpenses);
 
-        if (this.counterInterval) {
-            clearInterval(this.counterInterval);
-            this.counterInterval = null;
-        }
 
-        this.counterValue = 0;
-        balanceEl.textContent = this.formatCurrency(this.counterValue);
-        balanceContainer.classList.toggle('negative', this.counterValue < 0);
-        balanceContainer.classList.toggle('positive', this.counterValue >= 0);
-
-        if (net !== 0) {
-            const step = net > 0 ? 1 : -1;
-            this.counterInterval = setInterval(() => {
-                this.counterValue += step;
-                balanceEl.textContent = this.formatCurrency(this.counterValue);
-                balanceContainer.classList.toggle('negative', this.counterValue < 0);
-                balanceContainer.classList.toggle('positive', this.counterValue >= 0);
 
                 if (this.counterValue === net) {
                     clearInterval(this.counterInterval);
@@ -1064,30 +1091,49 @@ class BudgetApp {
     }
 
     editIncome() {
-        const salary = parseFloat(prompt('Новая зарплата', this.data.monthlyBudget.income.salary));
-        const freelance = parseFloat(prompt('Новый доход от фриланса', this.data.monthlyBudget.income.freelance));
-        if (!isNaN(salary)) {
-            this.data.monthlyBudget.income.salary = salary;
-        }
-        if (!isNaN(freelance)) {
-            this.data.monthlyBudget.income.freelance = freelance;
-        }
-        this.updateStats();
+        this.showModal('incomeModal');
     }
 
     editExpenses() {
-        const categories = Object.keys(this.data.monthlyBudget.expenses);
-        const category = prompt('Категория для редактирования: ' + categories.join(', '));
-        if (category && this.data.monthlyBudget.expenses[category]) {
-            const value = parseFloat(prompt('Новая сумма для ' + this.getCategoryName(category), this.data.monthlyBudget.expenses[category].actual));
-            if (!isNaN(value)) {
-                this.data.monthlyBudget.expenses[category].actual = value;
-                this.updateStats();
-                if (this.currentSection === 'analytics') {
-                    this.renderAnalytics();
-                }
-            }
+        this.showModal('expenseModal');
+    }
+
+    handleIncomeSubmit(e) {
+        e.preventDefault();
+
+        const category = document.getElementById('incomeCategory').value.trim();
+        const amount = parseFloat(document.getElementById('incomeAmount').value);
+
+        if (!category || isNaN(amount)) {
+            this.showNotification('Пожалуйста, заполните все поля');
+            return;
         }
+
+        this.data.monthlyBudget.income[category] = amount;
+        this.updateStats();
+        if (this.currentSection === 'analytics') {
+            this.renderAnalytics();
+        }
+        this.hideModal('incomeModal');
+    }
+
+    handleExpenseSubmit(e) {
+        e.preventDefault();
+
+        const category = document.getElementById('expenseCategory').value.trim();
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+        if (!category || isNaN(amount)) {
+            this.showNotification('Пожалуйста, заполните все поля');
+            return;
+        }
+
+        this.data.monthlyBudget.expenses[category] = {planned: amount, actual: amount, category: category};
+        this.updateStats();
+        if (this.currentSection === 'analytics') {
+            this.renderAnalytics();
+        }
+        this.hideModal('expenseModal');
     }
 
     editSavings() {
