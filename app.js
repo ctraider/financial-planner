@@ -11,7 +11,7 @@ class BudgetApp {
         this.expenseIncomeChart = null;
         this.balanceChart = null;
         this.savingsChart = null;
-        this.counterData = JSON.parse(localStorage.getItem('counterData')) || {balance: 150000, income: 0, expense: 0};
+
         this.defaultCategories = [
             {value: 'food', name: 'Еда'},
             {value: 'transport', name: 'Транспорт'},
@@ -384,7 +384,12 @@ class BudgetApp {
 
     showSection(sectionName) {
         console.log('Showing section:', sectionName); // Debug log
-        
+
+        if (this.counterInterval) {
+            clearInterval(this.counterInterval);
+            this.counterInterval = null;
+        }
+
         // Update navigation active state
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
@@ -933,64 +938,23 @@ class BudgetApp {
         const balanceContainer = document.getElementById('counterBalanceContainer');
         if (!balanceEl || !incomeEl || !expenseEl || !balanceContainer) return;
 
-        balanceEl.textContent = this.formatCurrency(this.counterData.balance);
-        incomeEl.textContent = this.formatCurrency(this.counterData.income);
-        expenseEl.textContent = this.formatCurrency(this.counterData.expense);
-        balanceContainer.classList.toggle('negative', this.counterData.balance < 0);
+        const totalIncome = Object.values(this.data.monthlyBudget.income)
+            .reduce((sum, inc) => sum + inc, 0);
+        const totalExpenses = Object.values(this.data.monthlyBudget.expenses)
+            .reduce((sum, exp) => sum + exp.actual, 0);
+        const net = totalIncome - totalExpenses;
 
-        this.setupCounterListeners();
-    }
+        incomeEl.textContent = this.formatCurrency(totalIncome);
+        expenseEl.textContent = this.formatCurrency(totalExpenses);
 
-    setupCounterListeners() {
-        const ids = ['setInitialBalanceBtn', 'addIncomeBtn', 'addExpenseBtn'];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.replaceWith(el.cloneNode(true));
-            }
-        });
 
-        const setBtn = document.getElementById('setInitialBalanceBtn');
-        const incomeBtn = document.getElementById('addIncomeBtn');
-        const expenseBtn = document.getElementById('addExpenseBtn');
 
-        if (setBtn) {
-            setBtn.addEventListener('click', () => {
-                const amount = parseFloat(document.getElementById('initialBalanceInput').value) || 0;
-                this.counterData = {balance: amount, income: 0, expense: 0};
-                this.saveCounterData();
-                this.renderCounter();
-                this.updateStats();
-            });
+                if (this.counterValue === net) {
+                    clearInterval(this.counterInterval);
+                    this.counterInterval = null;
+                }
+            }, 1000);
         }
-
-        if (incomeBtn) {
-            incomeBtn.addEventListener('click', () => {
-                const amount = parseFloat(document.getElementById('incomeInput').value) || 0;
-                this.counterData.balance += amount;
-                this.counterData.income += amount;
-                this.saveCounterData();
-                this.renderCounter();
-                this.updateStats();
-                document.getElementById('incomeInput').value = '';
-            });
-        }
-
-        if (expenseBtn) {
-            expenseBtn.addEventListener('click', () => {
-                const amount = parseFloat(document.getElementById('expenseInput').value) || 0;
-                this.counterData.balance -= amount;
-                this.counterData.expense += amount;
-                this.saveCounterData();
-                this.renderCounter();
-                this.updateStats();
-                document.getElementById('expenseInput').value = '';
-            });
-        }
-    }
-
-    saveCounterData() {
-        localStorage.setItem('counterData', JSON.stringify(this.counterData));
     }
 
     updateExpBar() {
