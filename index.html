@@ -176,7 +176,25 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <div class="card chart-card">
+                        <div class="card__body">
+                            <h3>Доходы по источникам</h3>
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="incomeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card chart-card">
+                        <div class="card__body">
+                            <h3>Расходы vs Доходы</h3>
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="expenseIncomeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card chart-card">
                         <div class="card__body">
                             <h3>Динамика баланса</h3>
@@ -185,7 +203,17 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <div class="card chart-card savings-card">
+                        <div class="card__body">
+                            <h3>Прогресс накопления</h3>
+                            <div class="chart-container" style="position: relative; height: 200px;">
+                                <canvas id="savingsChart"></canvas>
+                                <div class="chart-center-text" id="savingsGoalText"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card insights-card">
                         <div class="card__body">
                             <h3>Аналитические выводы</h3>

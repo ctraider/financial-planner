@@ -7,7 +7,10 @@ class BudgetApp {
         this.data = this.loadInitialData();
         this.currentTransactions = [];
         this.expensesChart = null;
+        this.incomeChart = null;
+        this.expenseIncomeChart = null;
         this.balanceChart = null;
+        this.savingsChart = null;
         this.counterData = JSON.parse(localStorage.getItem('counterData')) || {balance: 0, income: 0, expense: 0};
         this.defaultCategories = [
             {value: 'food', name: 'Еда'},
@@ -555,7 +558,10 @@ class BudgetApp {
 
     renderAnalytics() {
         this.renderExpensesChart();
+        this.renderIncomeChart();
+        this.renderExpenseIncomeChart();
         this.renderBalanceChart();
+        this.renderSavingsChart();
         this.renderInsights();
     }
 
@@ -600,6 +606,180 @@ class BudgetApp {
                 }
             }
         });
+    }
+
+    renderIncomeChart() {
+        const canvas = document.getElementById('incomeChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+
+        const income = this.data.monthlyBudget.income;
+        const labels = Object.keys(income).map(key => {
+            const names = { salary: 'Зарплата', freelance: 'Фриланс' };
+            return names[key] || key;
+        });
+        const data = Object.values(income);
+
+        if (this.incomeChart) {
+            this.incomeChart.destroy();
+        }
+
+        this.incomeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: '#1FB8CD',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: value => value.toLocaleString('ru-RU') + ' ₽',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    renderExpenseIncomeChart() {
+        const canvas = document.getElementById('expenseIncomeChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+
+        const labels = [];
+        const incomeData = [];
+        const expenseData = [];
+        const currentDate = new Date();
+
+        const baseIncome = Object.values(this.data.monthlyBudget.income).reduce((a, b) => a + b, 0);
+        const baseExpense = Object.values(this.data.monthlyBudget.expenses).reduce((a, b) => a + b.actual, 0);
+
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(currentDate);
+            date.setMonth(date.getMonth() - i);
+            labels.push(date.toLocaleDateString('ru-RU', { month: 'short' }));
+
+            incomeData.push(baseIncome + (Math.sin(i) * 5000) + Math.random() * 3000);
+            expenseData.push(baseExpense + (Math.cos(i) * 4000) + Math.random() * 3000);
+        }
+
+        if (this.expenseIncomeChart) {
+            this.expenseIncomeChart.destroy();
+        }
+
+        this.expenseIncomeChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Доходы',
+                        data: incomeData,
+                        borderColor: '#1FB8CD',
+                        backgroundColor: 'rgba(31, 184, 205, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Расходы',
+                        data: expenseData,
+                        borderColor: '#FFC185',
+                        backgroundColor: 'rgba(255, 193, 133, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--color-text') } } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: value => value.toLocaleString('ru-RU') + ' ₽',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    renderSavingsChart() {
+        const canvas = document.getElementById('savingsChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const goal = this.data.userProfile.financialGoals[0];
+        const current = goal.current;
+        const target = goal.target;
+        const remaining = Math.max(target - current, 0);
+
+        if (this.savingsChart) {
+            this.savingsChart.destroy();
+        }
+
+        this.savingsChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Текущий прогресс', 'Осталось'],
+                datasets: [{
+                    data: [current, remaining],
+                    backgroundColor: ['#1FB8CD', '#ECEBD5'],
+                    borderWidth: 2,
+                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-surface')
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const goalText = document.getElementById('savingsGoalText');
+        if (goalText) {
+            goalText.textContent = `${this.formatCurrency(current)} / ${this.formatCurrency(target)} ₽`;
+        }
     }
 
     renderBalanceChart() {
