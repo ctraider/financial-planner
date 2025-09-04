@@ -11,6 +11,11 @@ class BudgetApp {
         this.expenseIncomeChart = null;
         this.balanceChart = null;
         this.savingsChart = null;
+        // Extended analytics charts
+        this.expensesBarsChart = null;
+        this.expensesLineChart = null;
+        this.incomePieChart = null;
+        this.incomeLineChart = null;
 
         this.selectedMonth = this.getCurrentMonth();
 
@@ -484,6 +489,24 @@ class BudgetApp {
             });
         });
 
+        // New analytics edit buttons (donut cards)
+        const editExpensesBtn = document.getElementById('editExpensesBtn');
+        if (editExpensesBtn) {
+            editExpensesBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.editExpenses();
+            });
+        }
+
+        const editIncomeBtn = document.getElementById('editIncomeBtn');
+        if (editIncomeBtn) {
+            editIncomeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.editIncome();
+            });
+        }
+
+        // Back-compat buttons if present
         const addExpenseBtnAnalytics = document.getElementById('addExpenseButton');
         if (addExpenseBtnAnalytics) {
             addExpenseBtnAnalytics.addEventListener('click', (e) => {
@@ -768,11 +791,15 @@ class BudgetApp {
             monthInput.value = this.selectedMonth;
         }
         this.renderExpensesChart();
+        this.renderExpensesBars();
+        this.renderExpensesLine();
+        this.renderIncomePie();
         this.renderIncomeChart();
+        this.renderIncomeLine();
     }
 
     renderExpensesChart() {
-        const canvas = document.getElementById('expensesChart');
+        const canvas = document.getElementById('expensesPie');
         if (!canvas) return;
         
         const ctx = canvas.getContext('2d');
@@ -781,7 +808,7 @@ class BudgetApp {
         const expenses = budget.expenses;
         const labels = Object.values(expenses).map(exp => exp.category);
         const data = Object.values(expenses).map(exp => exp.actual);
-        const colors = ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545', '#D2BA4C', '#964325'];
+        const colors = ['#7c8cff','#ff8bd6','#ffd166','#63d1ff','#6ee7b7','#fca5a5','#a78bfa','#f59e0b'];
 
         if (this.expensesChart) {
             this.expensesChart.destroy();
@@ -802,21 +829,27 @@ class BudgetApp {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true,
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--color-text')
-                        }
-                    }
+                    legend: { display: false }
                 }
             }
         });
+        const total = data.reduce((a,b)=>a+b,0);
+        const totalEl = document.getElementById('expensesTotal');
+        if (totalEl) totalEl.textContent = `${this.formatCurrency(total)} ₽`;
+        const legend = document.getElementById('expensesLegend');
+        if (legend) {
+            legend.innerHTML = '';
+            labels.forEach((label,i)=>{
+                const chip=document.createElement('div'); chip.className='legend-chip';
+                const dot=document.createElement('span'); dot.className='legend-dot'; dot.style.background=colors[i%colors.length];
+                const text=document.createElement('span'); text.textContent=`${label}: ${this.formatCurrency(data[i])} ₽`;
+                chip.appendChild(dot); chip.appendChild(text); legend.appendChild(chip);
+            });
+        }
     }
 
     renderIncomeChart() {
-        const canvas = document.getElementById('incomeChart');
+        const canvas = document.getElementById('incomeBars');
         if (!canvas) return;
 
         const ctx = canvas.getContext('2d');
@@ -839,8 +872,8 @@ class BudgetApp {
                 labels: labels,
                 datasets: [{
                     data: data,
-                    backgroundColor: '#1FB8CD',
-                    borderRadius: 8
+                    backgroundColor: ['#7c8cff','#6ee7b7','#f59e0b','#fca5a5','#a78bfa'],
+                    borderRadius: 10
                 }]
             },
             options: {
@@ -869,6 +902,70 @@ class BudgetApp {
                 }
             }
         });
+    }
+
+    // Additional analytics renderers
+    renderExpensesBars() {
+        const canvas = document.getElementById('expensesBars');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const budget = this.getBudgetForMonth(this.selectedMonth);
+        const entries = Object.entries(budget.expenses);
+        const labels = entries.map(([k,v]) => v.category);
+        const data = entries.map(([k,v]) => v.actual);
+        if (this.expensesBarsChart) this.expensesBarsChart.destroy();
+        this.expensesBarsChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ data, backgroundColor: ['#ff8bd6','#ffd166','#63d1ff','#6ee7b7','#a78bfa','#f59e0b','#fca5a5','#7c8cff'], borderRadius: 10 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString('ru-RU') + ' ₽', color: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary') }, grid:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-border') } }, x:{ ticks:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary') }, grid:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-border') } } } }
+        });
+    }
+
+    renderExpensesLine() {
+        const canvas = document.getElementById('expensesLine');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const today = new Date(this.selectedMonth + '-01');
+        const month = today.getMonth();
+        const year = today.getFullYear();
+        const days = new Date(year, month+1, 0).getDate();
+        const labels = Array.from({length: Math.min(30, days)}, (_,i)=> (i+1).toString());
+        const base = Object.values(this.getBudgetForMonth(this.selectedMonth).expenses).reduce((s,e)=>s+e.actual,0)/labels.length;
+        const data = labels.map((_,i)=> Math.max(0, base + Math.sin(i*0.4)*base*0.3 + (Math.random()-0.5)*base*0.4));
+        if (this.expensesLineChart) this.expensesLineChart.destroy();
+        this.expensesLineChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'Расходы', data, borderColor:'#ff8bd6', backgroundColor:'rgba(255,139,214,0.12)', borderWidth:3, fill:true, tension:0.4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString('ru-RU') + ' ₽', color:getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary') }, grid:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-border') } }, x:{ ticks:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary') }, grid:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-border') } } } });
+    }
+
+    renderIncomePie() {
+        const canvas = document.getElementById('incomePie');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const income = this.getBudgetForMonth(this.selectedMonth).income;
+        const labels = Object.keys(income);
+        const data = Object.values(income);
+        const colors = ['#6ee7b7','#7c8cff','#a78bfa','#63d1ff','#f59e0b'];
+        if (this.incomePieChart) this.incomePieChart.destroy();
+        this.incomePieChart = new Chart(ctx, { type:'doughnut', data:{ labels, datasets:[{ data, backgroundColor: colors, borderWidth:2, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-surface') }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } } });
+        const total = data.reduce((a,b)=>a+b,0);
+        const totalEl = document.getElementById('incomeTotal');
+        if (totalEl) totalEl.textContent = `${this.formatCurrency(total)} ₽`;
+        const legend = document.getElementById('incomeLegend');
+        if (legend) { legend.innerHTML=''; labels.forEach((label,i)=>{ const chip=document.createElement('div'); chip.className='legend-chip'; const dot=document.createElement('span'); dot.className='legend-dot'; dot.style.background=colors[i%colors.length]; const text=document.createElement('span'); text.textContent=`${label}: ${this.formatCurrency(data[i])} ₽`; chip.appendChild(dot); chip.appendChild(text); legend.appendChild(chip); }); }
+    }
+
+    renderIncomeLine() {
+        const canvas = document.getElementById('incomeLine');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const today = new Date(this.selectedMonth + '-01');
+        const month = today.getMonth();
+        const year = today.getFullYear();
+        const days = new Date(year, month+1, 0).getDate();
+        const labels = Array.from({length: Math.min(30, days)}, (_,i)=> (i+1).toString());
+        const base = Object.values(this.getBudgetForMonth(this.selectedMonth).income).reduce((s,e)=>s+e,0)/labels.length;
+        const data = labels.map((_,i)=> Math.max(0, base + Math.cos(i*0.35)*base*0.25 + (Math.random()-0.5)*base*0.3));
+        if (this.incomeLineChart) this.incomeLineChart.destroy();
+        this.incomeLineChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'Зачисления', data, borderColor:'#7c8cff', backgroundColor:'rgba(124,140,255,0.12)', borderWidth:3, fill:true, tension:0.4 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=> v.toLocaleString('ru-RU') + ' ₽', color:getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary') }, grid:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-border') } }, x:{ ticks:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary') }, grid:{ color:getComputedStyle(document.documentElement).getPropertyValue('--color-border') } } } });
     }
 
     renderExpenseIncomeChart() {

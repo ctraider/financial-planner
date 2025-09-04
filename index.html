@@ -178,6 +178,45 @@
                     <button class="analytics-tab" data-tab="incomeContent">Зачисления</button>
                 </div>
                 <div id="expensesContent" class="analytics-content active">
+                    <!-- Modern analytics grid (added) -->
+                    <div class="analytics-grid">
+                        <div class="card chart-card glass">
+                            <div class="card__body">
+                                <div class="chart-header">
+                                    <h3>Расходы по категориям</h3>
+                                    <div class="chart-actions">
+                                        <button class="btn btn--secondary btn--sm" id="editExpensesBtn">Редактировать</button>
+                                    </div>
+                                </div>
+                                <div class="chart-container" style="position: relative; height: 320px;">
+                                    <canvas id="expensesPie"></canvas>
+                                    <div class="chart-center-text" id="expensesTotal"></div>
+                                </div>
+                                <div id="expensesLegend" class="chips-legend"></div>
+                            </div>
+                        </div>
+                        <div class="card chart-card glass">
+                            <div class="card__body">
+                                <div class="chart-header">
+                                    <h3>Структура расходов</h3>
+                                </div>
+                                <div class="chart-container" style="position: relative; height: 320px;">
+                                    <canvas id="expensesBars"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card chart-card glass insights-card">
+                            <div class="card__body">
+                                <div class="chart-header">
+                                    <h3>Динамика расходов (месяц)</h3>
+                                </div>
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <canvas id="expensesLine"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End modern analytics grid -->
                     <div class="card chart-card">
                         <div class="card__body">
                             <h3>Расходы по категориям</h3>
@@ -189,6 +228,45 @@
                     </div>
                 </div>
                 <div id="incomeContent" class="analytics-content">
+                    <!-- Modern analytics grid (added) -->
+                    <div class="analytics-grid">
+                        <div class="card chart-card glass">
+                            <div class="card__body">
+                                <div class="chart-header">
+                                    <h3>Зачисления по источникам</h3>
+                                    <div class="chart-actions">
+                                        <button class="btn btn--secondary btn--sm" id="editIncomeBtn">Редактировать</button>
+                                    </div>
+                                </div>
+                                <div class="chart-container" style="position: relative; height: 320px;">
+                                    <canvas id="incomePie"></canvas>
+                                    <div class="chart-center-text" id="incomeTotal"></div>
+                                </div>
+                                <div id="incomeLegend" class="chips-legend"></div>
+                            </div>
+                        </div>
+                        <div class="card chart-card glass">
+                            <div class="card__body">
+                                <div class="chart-header">
+                                    <h3>Структура зачислений</h3>
+                                </div>
+                                <div class="chart-container" style="position: relative; height: 320px;">
+                                    <canvas id="incomeBars"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card chart-card glass insights-card">
+                            <div class="card__body">
+                                <div class="chart-header">
+                                    <h3>Динамика зачислений (месяц)</h3>
+                                </div>
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <canvas id="incomeLine"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End modern analytics grid -->
                     <div class="card chart-card">
                         <div class="card__body">
                             <h3>Доходы по источникам</h3>
